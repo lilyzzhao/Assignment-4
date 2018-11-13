@@ -1,0 +1,60 @@
+---
+title: "Assignment_4"
+author: "Lily Zhao"
+date: "11/12/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Load packages and data
+library(tidyverse)
+library(vcdExtra)
+lobstertraps <- read_csv("lobster_traps.csv")
+lobster_size_abundance <- read_csv("lobster_size_abundance.csv")
+
+```
+
+
+2. Compare mean lobster size by site in 2017
+
+```{r}
+#2. Compare mean lobster size by site in 2017
+
+l_size_bysite <- as.data.frame(lobster_size_abundance) #converts to data frame
+l_size_bysitecase <-expand.dft(l_size_bysite, freq = "COUNT") #Expands to case
+only2017<- l_size_bysitecase %>% 
+  filter(YEAR== "2017") #reduce dataframe to just 2017 values
+  
+  
+#histograms of size by size to check for normal distribution and N >30 at all locations
+sizebysite_hist <- ggplot(only2017, aes(x = SIZE)) +
+  geom_histogram(aes(fill = SITE)) +
+  facet_wrap(~ SITE, scale = "free")+
+  theme_classic()
+sizebysite_hist
+#assumption of normality confirmed. 
+
+#one way anova of mean size by site in 2017
+only2017_aov <- aov(SIZE ~ SITE, data = only2017)
+only2017_aov_sum <- summary(only2017_aov)
+only2017_aov_sum #sites are sig different but which ones?
+
+only2017_ph <- TukeyHSD(only2017_aov)
+only2017_ph
+
+#NAPL-CARP  are sig diff p-adj 0.0228728
+# NAPL-IVEE  are sig diff p-adj 0.0037001
+
+#graph to fix
+only2017colgraph <- ggplot(only2017, aes(x= SITE, y = SIZE)) +
+  geom_point(aes(size = SIZE, color = SITE))+
+    labs(x = "Site", 
+         y = "Mean Size")+
+    theme_classic()
+only2017colgraph
+```
+
